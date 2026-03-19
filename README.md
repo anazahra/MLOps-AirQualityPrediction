@@ -73,7 +73,6 @@ git clone https://github.com/anazahra/MLOps-AirQualityPrediction.git
 cd MLOps-AirQualityPrediction
 python -m venv venv && source venv/bin/activate
 pip install -r requirements.txt
-cp .env.example .env  # isi OPENWEATHER_API_KEY di .env
 ```
  
 ## 🌳 Branching Strategy (GitHub Flow)
