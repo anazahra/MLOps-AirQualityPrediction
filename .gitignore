@@ -205,3 +205,27 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+ 
+# Data files 
+data/raw/*.csv
+data/raw/*.json
+data/processed/*.csv
+data/batches/*.csv
+!data/**/.gitkeep
+ 
+# Model artifacts
+models/trained/*.joblib
+models/trained/*.pkl
+!models/**/.gitkeep
+ 
+# MLflow
+mlruns/
+mlartifacts/
+ 
+# Environment & secrets
+.env
+*.env
+ 
+# Reports
+reports/figures/*.png
+reports/figures/*.jpg

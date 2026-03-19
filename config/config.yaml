@@ -1,0 +1,48 @@
+# AQI Prediction MLOps - Configuration
+ 
+data:
+  cities:
+    - {name: "Jakarta",   lat: -6.2088,  lon: 106.8456}
+    - {name: "Surabaya",  lat: -7.2575,  lon: 112.7521}
+    - {name: "Bandung",   lat: -6.9175,  lon: 107.6191}
+    - {name: "Medan",     lat: 3.5952,   lon: 98.6722}
+    - {name: "Semarang",  lat: -6.9932,  lon: 110.4203}
+  raw_path: "data/raw/"
+  processed_path: "data/processed/"
+  batches_path: "data/batches/"
+  sliding_window_days: 30
+ 
+features:
+  target: "aqi_category"
+  numeric_cols: ["pm2_5", "pm10", "no2", "o3", "co", "so2",
+                 "temperature", "humidity", "wind_speed"]
+  time_cols: ["hour"]          # akan di-encode cyclical sin/cos
+  lag_features: [1, 2, 3]      # PM2.5 t-1, t-2, t-3
+ 
+model:
+  name: "RandomForestClassifier"
+  params:
+    n_estimators: [100, 200, 300]
+    max_depth: [10, 20, null]
+    min_samples_split: [2, 5]
+  random_state: 42
+ 
+evaluation:
+  primary_metric: "f1_macro"
+  thresholds:
+    accuracy: 0.80
+    f1_macro: 0.78
+    recall_unhealthy: 0.85     # prioritas: jangan miss kategori berbahaya
+ 
+mlflow:
+  experiment_name: "aqi-prediction"
+  tracking_uri: "mlruns"
+ 
+drift:
+  kl_divergence_threshold: 0.20
+  reference_feature: "pm2_5"
+  check_interval_days: 7
+ 
+ingestion:
+  schedule_hour: 6             # ingestion harian jam 06:00 WIB
+  api_timeout_seconds: 10
