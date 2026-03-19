@@ -85,5 +85,3 @@ pip install -r requirements.txt
  
 ## 👤 Kontributor
 **Ana Zahratul Firdausi** - 235150201111049 
-## 📄 Lisensi
-MIT License - lihat [LICENSE](LICENSE)
