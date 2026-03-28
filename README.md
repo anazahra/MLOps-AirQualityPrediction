@@ -27,7 +27,7 @@ Proyek ini membangun sistem prediksi AQI berbasis MLOps yang dapat:
 - **OpenWeatherMap Air Pollution API**: PM2.5, PM10, NO2, O3, CO, SO2
   - Daftar gratis: https://openweathermap.org/api (1.000 call/hari)
 - **BMKG Open Data**: Suhu, kelembaban, kecepatan angin
-  - Akses langsung tanpa registrasi: https://data.bmkg.go.id/api/
+  - Akses langsung tanpa registrasi: https://data.bmkg.go.id/DataMKG/MEWS/DigitalForecast/
 - **Coverage**: 10 kota besar Indonesia — update setiap jam (24/7)
  
 ## 📁 Struktur Direktori
