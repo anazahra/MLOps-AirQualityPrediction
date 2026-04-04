@@ -82,6 +82,72 @@ pip install -r requirements.txt
 | `feat/initial-eda` | EDA awal data AQI *(sudah di-merge)* |
 | `feat/data-pipeline` | Pipeline ingestion & preprocessing (mendatang) |
 | `feat/model-training` | Training Random Forest + MLflow (mendatang) |
+
+## 🚀 Data Pipeline — LK-04
  
+### Prerequisites
+Pastikan sudah install semua dependencies:
+```bash
+pip install -r requirements.txt
+```
+ 
+### 1. Menjalankan Data Ingestion
+Skrip ini mengambil data AQI real-time dari OpenWeatherMap API
+untuk 10 kota besar Indonesia dan menyimpannya secara non-destruktif.
+ 
+```bash
+python src/ingest_data.py
+```
+ 
+**Output:** `data/raw/data_YYYYMMDD_HHMMSS.csv`
+ 
+Jalankan beberapa kali untuk mengumpulkan data yang cukup:
+```bash
+for i in {1..10}; do python src/ingest_data.py; sleep 2; done
+```
+ 
+### 2. Menggabungkan Data
+Setelah ingestion beberapa kali, gabungkan semua CSV:
+```bash
+python3 -c "
+import pandas as pd, glob
+files = glob.glob('data/raw/data_*.csv')
+df = pd.concat([pd.read_csv(f) for f in files])
+df = df.drop_duplicates(subset=['city','timestamp'])
+df.to_csv('data/raw/dataset_combined.csv', index=False)
+print(f'Total: {len(df)} records')
+"
+```
+ 
+### 3. Menjalankan Preprocessing
+Skrip ini membersihkan data mentah dan menghasilkan fitur siap pakai.
+ 
+```bash
+python src/preprocess.py
+```
+ 
+**Output:** `data/processed/features_YYYYMMDD.csv`
+ 
+### Format Output Data
+ 
+| File | Lokasi | Deskripsi |
+|------|--------|-----------|
+| data_YYYYMMDD_HHMMSS.csv | data/raw/ | Data mentah per ingestion run |
+| dataset_combined.csv | data/raw/ | Gabungan semua data mentah |
+| features_YYYYMMDD.csv | data/processed/ | Data setelah feature engineering |
+ 
+### Kolom Dataset (features_YYYYMMDD.csv)
+ 
+| Kolom | Tipe | Deskripsi |
+|-------|------|-----------|
+| city | string | Nama kota |
+| pm2_5 | float | PM2.5 (µg/m³) |
+| pm10 | float | PM10 (µg/m³) |
+| aqi | int | AQI index (1-5) |
+| hour_sin, hour_cos | float | Cyclical encoding jam |
+| pm25_lag_1/2/3 | float | Lag features PM2.5 |
+| pm25_rolling_6h | float | Rolling mean PM2.5 6 jam |
+| aqi_category | string | **Target label** (Baik/Sedang/Tidak Sehat/Berbahaya) |
+
 ## 👤 Kontributor
 **Ana Zahratul Firdausi** - 235150201111049 
