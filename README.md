@@ -149,5 +149,71 @@ python src/preprocess.py
 | pm25_rolling_6h | float | Rolling mean PM2.5 6 jam |
 | aqi_category | string | **Target label** (Baik/Sedang/Tidak Sehat/Berbahaya) |
 
+## 📦 Data Versioning — LK-05
+
+### Prerequisites
+Pastikan DVC sudah terinstall:
+```bash
+pip install dvc
+```
+
+### 1. Inisialisasi DVC
+```bash
+dvc init
+mkdir -p /workspaces/dvc-storage
+dvc remote add -d myremote /workspaces/dvc-storage
+git add .dvc/config
+git commit -m "Configure DVC local remote storage"
+```
+
+### 2. Tracking Dataset (Version 1)
+Mendaftarkan dataset ke DVC agar tidak disimpan langsung di Git:
+```bash
+dvc add data/raw/dataset_combined.csv
+git add data/raw/dataset_combined.csv.dvc
+git commit -m "Add dataset to DVC tracking [Version 1]"
+dvc push
+```
+
+### 3. Update Dataset (Version 2)
+Simulasi continual learning — ambil data baru dan buat versi baru:
+```bash
+for i in {1..3}; do python src/ingest_data.py; sleep 2; done
+python3 -c "
+import pandas as pd, glob
+files = glob.glob('data/raw/data_*.csv')
+df = pd.concat([pd.read_csv(f) for f in files])
+df = df.drop_duplicates(subset=['city','timestamp'])
+df.to_csv('data/raw/dataset_combined.csv', index=False)
+print(f'Total: {len(df)} records')
+"
+dvc add data/raw/dataset_combined.csv
+git add data/raw/dataset_combined.csv.dvc
+git commit -m "Update dataset: add new ingestion data [Version 2]"
+dvc push
+```
+
+### 4. Audit Versi
+Melihat status dan perbedaan antar versi dataset:
+```bash
+dvc status
+git log --oneline
+dvc diff HEAD~1 HEAD
+```
+
+### 5. Memulihkan Dataset Versi Lama
+```bash
+git checkout <commit-hash>
+dvc checkout
+```
+
+### Format File DVC
+
+| File | Lokasi | Deskripsi |
+|------|--------|-----------|
+| dataset_combined.csv.dvc | data/raw/ | Pointer metadata Version 1 & 2 |
+| .dvc/config | .dvc/ | Konfigurasi remote storage DVC |
+| /workspaces/dvc-storage | lokal | Penyimpanan data aktual DVC |
+
 ## 👤 Kontributor
 **Ana Zahratul Firdausi** - 235150201111049 
