@@ -215,5 +215,70 @@ dvc checkout
 | .dvc/config | .dvc/ | Konfigurasi remote storage DVC |
 | /workspaces/dvc-storage | lokal | Penyimpanan data aktual DVC |
 
+## 🤖 CI/CD Pipeline — Tutorial
+
+Pipeline berjalan otomatis via GitHub Actions setiap kali ada push ke `main`
+atau setiap hari jam **08.00 WIB** (01.00 UTC).
+
+[![CI/CD Status](https://github.com/anazahra/MLOps-AirQualityPrediction/actions/workflows/mlops_pipeline.yml/badge.svg)](https://github.com/anazahra/MLOps-AirQualityPrediction/actions/workflows/mlops_pipeline.yml)
+
+### Alur Pipeline
+
+```
+Push / PR ke main
+      │
+      ▼
+┌──────────────────────────┐
+│  JOB 1: CI – Validation  │  ← Berjalan di SEMUA push & PR
+│  • Install dependencies  │
+│  • Run pytest tests/     │
+└───────────┬──────────────┘
+            │ (jika semua test PASSED)
+            ▼
+┌──────────────────────────┐
+│  JOB 2: CD – Pipeline    │  ← Berjalan HANYA di branch main
+│  • Run ingest_data.py    │
+│  • Run preprocess.py     │
+│  • Upload artifact       │
+└──────────────────────────┘
+```
+
+### Trigger yang Aktif
+
+| Trigger | Kapan Berjalan |
+|---------|----------------|
+| `push` ke `main` / `feat/**` | Setiap kali ada commit baru |
+| `pull_request` ke `main` | Saat PR dibuka atau diperbarui |
+| `schedule` cron `0 1 * * *` | Setiap hari jam 08.00 WIB otomatis |
+| `workflow_dispatch` | Manual dari tab Actions di GitHub |
+
+### Menjalankan Workflow Manual
+
+1. Buka tab **Actions** di repositori GitHub
+2. Klik **MLOps AQI Pipeline – CI/CD** di sidebar kiri
+3. Klik tombol **Run workflow** → pilih branch `main` → **Run workflow**
+
+### Menjalankan Unit Tests Lokal
+
+```bash
+# Install pytest jika belum ada
+pip install pytest
+
+# Jalankan semua tests
+pytest tests/ -v
+```
+
+### Lokasi File Workflow
+
+```
+.github/workflows/mlops_pipeline.yml
+```
+
+## 🔗 Link Repositori
+
+- **GitHub:** https://github.com/anazahra/MLOps-AirQualityPrediction
+- **Actions (CI/CD):** https://github.com/anazahra/MLOps-AirQualityPrediction/actions
+- **Video Referensi Tutorial:** https://www.youtube.com/watch?v=ciqWMIf7Pz0
+
 ## 👤 Kontributor
 **Ana Zahratul Firdausi** - 235150201111049 
