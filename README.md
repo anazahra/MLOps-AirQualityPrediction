@@ -215,5 +215,223 @@ dvc checkout
 | .dvc/config | .dvc/ | Konfigurasi remote storage DVC |
 | /workspaces/dvc-storage | lokal | Penyimpanan data aktual DVC |
 
+---
+
+## 🧪 Experiment Tracking & Model Training — LK-06
+
+### 📌 Deskripsi
+
+Pada tahap ini, sistem MLOps dikembangkan dengan menambahkan **experiment tracking menggunakan MLflow** untuk memonitor performa model secara sistematis.
+
+Model yang digunakan:
+
+* Random Forest (beberapa konfigurasi)
+* XGBoost (sebagai pembanding)
+
+Setiap eksperimen akan mencatat:
+
+* Parameter model
+* Metrik evaluasi (Accuracy, F1, Precision, Recall)
+* Artifact model
+* Run ID
+
+---
+
+### ⚙️ Setup MLflow
+
+Install dependencies:
+
+```bash
+pip install mlflow xgboost
+```
+
+Jalankan MLflow UI:
+
+```bash
+mlflow ui
+```
+
+Akses dashboard:
+
+```
+http://localhost:5000
+```
+
+---
+
+### 📂 Struktur Tambahan
+
+```
+models/
+├── trained/
+├── evaluation/
+
+mlruns/        ← otomatis dari MLflow
+src/models/
+└── train.py   ← script training LK-06
+```
+
+---
+
+### ▶️ Menjalankan Training
+
+```bash
+python src/models/train.py
+```
+
+Script ini akan:
+
+1. Load dataset terbaru
+2. Preprocessing fitur
+3. Split data train-test
+4. Menjalankan beberapa eksperimen model
+5. Logging hasil ke MLflow
+
+---
+
+### 🔁 Eksperimen yang Dijalankan
+
+| Run | Model         | Parameter                         |
+| --- | ------------- | --------------------------------- |
+| 1   | Random Forest | n=100, depth=5                    |
+| 2   | Random Forest | n=200, depth=10                   |
+| 3   | Random Forest | n=150, depth=8, max_features=log2 |
+| 4   | XGBoost       | lr=0.1, n=100, depth=6            |
+
+---
+
+### 📊 Hasil Eksperimen
+
+| Model       | Accuracy | F1-Macro   | Precision | Recall |
+| ----------- | -------- | ---------- | --------- | ------ |
+| RF Baseline | 0.9833   | 0.7460     | 0.7422    | 0.75   |
+| RF Deep     | 0.9917   | **0.9147** | 0.996     | 0.875  |
+| RF Log2     | 0.9917   | 0.9147     | 0.996     | 0.875  |
+| XGBoost     | 0.9917   | 0.9147     | 0.996     | 0.875  |
+
+---
+
+### 🏆 Model Terbaik
+
+* **Model:** Random Forest (Deep)
+* **Parameter:** n_estimators=200, max_depth=10
+* **F1-Macro:** 0.9147
+* **Run ID:** `073969d794804d27b3a144c5cf01f79d`
+
+**Alasan pemilihan:**
+
+* F1-score tertinggi (stabil di semua kelas)
+* Recall tinggi untuk kelas kritis
+* Lebih stabil dibanding baseline
+
+---
+
+### 📈 Monitoring di MLflow
+
+MLflow menyediakan:
+
+* Perbandingan antar run
+* Visualisasi metrik
+* Tracking parameter
+* Penyimpanan model
+
+Untuk melihat:
+
+```bash
+mlflow ui
+```
+
+---
+
+### 💾 Version Control
+
+Tambahkan MLflow ke `.gitignore`:
+
+```bash
+echo "mlruns/" >> .gitignore
+```
+
+---
+
+### 🔀 Git Workflow (LK-06)
+
+```bash
+git add src/models/train.py
+git add .gitignore
+
+git commit -m "feat: add MLflow experiment tracking (LK-06)"
+
+git checkout -b feat/model-training
+git push origin feat/model-training
+```
+
+---
+
+
+## 🤖 CI/CD Pipeline — Tutorial
+
+Pipeline berjalan otomatis via GitHub Actions setiap kali ada push ke `main`
+atau setiap hari jam **08.00 WIB** (01.00 UTC).
+
+[![CI/CD Status](https://github.com/anazahra/MLOps-AirQualityPrediction/actions/workflows/mlops_pipeline.yml/badge.svg)](https://github.com/anazahra/MLOps-AirQualityPrediction/actions/workflows/mlops_pipeline.yml)
+
+### Alur Pipeline
+
+```
+Push / PR ke main
+      │
+      ▼
+┌──────────────────────────┐
+│  JOB 1: CI – Validation  │  ← Berjalan di SEMUA push & PR
+│  • Install dependencies  │
+│  • Run pytest tests/     │
+└───────────┬──────────────┘
+            │ (jika semua test PASSED)
+            ▼
+┌──────────────────────────┐
+│  JOB 2: CD – Pipeline    │  ← Berjalan HANYA di branch main
+│  • Run ingest_data.py    │
+│  • Run preprocess.py     │
+│  • Upload artifact       │
+└──────────────────────────┘
+```
+
+### Trigger yang Aktif
+
+| Trigger | Kapan Berjalan |
+|---------|----------------|
+| `push` ke `main` / `feat/**` | Setiap kali ada commit baru |
+| `pull_request` ke `main` | Saat PR dibuka atau diperbarui |
+| `schedule` cron `0 1 * * *` | Setiap hari jam 08.00 WIB otomatis |
+| `workflow_dispatch` | Manual dari tab Actions di GitHub |
+
+### Menjalankan Workflow Manual
+
+1. Buka tab **Actions** di repositori GitHub
+2. Klik **MLOps AQI Pipeline – CI/CD** di sidebar kiri
+3. Klik tombol **Run workflow** → pilih branch `main` → **Run workflow**
+
+### Menjalankan Unit Tests Lokal
+
+```bash
+# Install pytest jika belum ada
+pip install pytest
+
+# Jalankan semua tests
+pytest tests/ -v
+```
+
+### Lokasi File Workflow
+
+```
+.github/workflows/mlops_pipeline.yml
+```
+
+## 🔗 Link Repositori
+
+- **GitHub:** https://github.com/anazahra/MLOps-AirQualityPrediction
+- **Actions (CI/CD):** https://github.com/anazahra/MLOps-AirQualityPrediction/actions
+- **Video Referensi Tutorial:** https://www.youtube.com/watch?v=ciqWMIf7Pz0
+
 ## 👤 Kontributor
 **Ana Zahratul Firdausi** - 235150201111049 
