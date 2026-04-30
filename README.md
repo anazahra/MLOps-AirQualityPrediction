@@ -367,6 +367,155 @@ git push origin feat/model-training
 
 ---
 
+## 🏷️ Model Registry & Versioning — LK-07
+
+### 📌 Deskripsi
+
+Pada tahap ini, model terbaik dari LK-06 dikelola siklus hidupnya menggunakan
+**MLflow Model Registry**. Model didaftarkan secara resmi, diberi versi,
+dan ditransisikan melewati tahap Staging hingga Production. Metadata model
+juga disinkronisasi menggunakan DVC untuk menjaga data lineage.
+
+---
+
+### 🏆 Model Aktif (Production)
+
+| Komponen | Detail |
+|----------|--------|
+| Nama Model | AQI_RandomForest |
+| Versi Aktif | v1 |
+| Stage | **Production** |
+| Accuracy | 0.9917 |
+| F1-Macro | 0.9147 |
+| Precision | 0.996 |
+| Recall | 0.875 |
+| Run ID | `ef1e7282fead45f9ae8cc4baaf2b4506` |
+
+**Alasan pemilihan v1 sebagai Production:**
+Model RF Deep (n_estimators=200, max_depth=10) dipilih karena menghasilkan
+nilai accuracy dan F1-macro tertinggi di antara semua run LK-06. Parameter
+yang lebih dalam memungkinkan model mempelajari pola data kualitas udara
+yang kompleks secara lebih akurat dan stabil.
+
+---
+
+### 📋 Riwayat Versi Model
+
+| Versi | n_estimators | max_depth | Accuracy | F1-Macro | Stage |
+|-------|-------------|-----------|----------|----------|-------|
+| v1 | 200 | 10 | 0.9917 | 0.9147 | Production |
+| v2 | 300 | 12 | 0.9917 | 0.9147 | None |
+
+---
+
+### 📂 Struktur Tambahan
+
+```
+src/models/
+├── train.py               # Training eksperimen LK-06
+├── register_model.py      # Registrasi & versioning model
+└── verify_inference.py    # Verifikasi model Production bisa dipanggil
+
+models/
+├── model_production.yaml      # Metadata model aktif (tracked DVC)
+└── model_production.yaml.dvc  # Pointer DVC
+```
+
+---
+
+### ▶️ 1. Registrasi Model Versi Baru (v2)
+
+Model terbaik dari LK-06 otomatis terdaftar saat training. Untuk mendaftarkan
+versi baru (v2) dengan parameter berbeda:
+
+```bash
+python src/models/register_model.py
+```
+
+**Output:** Daftar semua versi model yang terdaftar di MLflow Model Registry
+
+---
+
+### 🔀 2. Transisi Stage Model
+
+Memindahkan model melewati MLflow UI:
+
+```bash
+mlflow ui
+# Buka browser → tab Models → AQI_RandomForest → Version 1
+# Klik Stage → Transition to Staging → Transition to Production
+```
+
+| Stage | Deskripsi |
+|-------|-----------|
+| None | Model baru terdaftar, belum divalidasi |
+| Staging | Model dalam pengujian pre-production |
+| Production | Model aktif digunakan untuk inferensi |
+
+---
+
+### ✅ 3. Verifikasi Inferensi
+
+Membuktikan model Production dapat dipanggil secara programatik:
+
+```bash
+python src/models/verify_inference.py
+```
+
+**Output yang diharapkan:**
+
+```
+=======================================================
+HASIL VERIFIKASI INFERENSI
+=======================================================
+Model URI   : models:/AQI_RandomForest/Production
+Input PM2.5 : 12.5 ug/m3
+Prediksi    : Baik
+Status      : INFERENSI BERHASIL
+=======================================================
+```
+
+Load model langsung di kode:
+
+```python
+import mlflow.pyfunc
+
+model = mlflow.pyfunc.load_model('models:/AQI_RandomForest/Production')
+prediction = model.predict(data)  
+```
+
+---
+
+### 📦 4. Metadata Model (DVC)
+
+File metadata model Production di-track dengan DVC untuk menjaga data lineage
+antara versi dataset dan versi model yang dihasilkan:
+
+```bash
+# Lihat metadata model yang aktif
+cat models/model_production.yaml
+
+# Cek status DVC
+dvc status
+```
+
+| File | Lokasi | Deskripsi |
+|------|--------|-----------|
+| model_production.yaml | models/ | Metadata model Production aktif |
+| model_production.yaml.dvc | models/ | Pointer DVC (di-commit ke Git) |
+
+---
+
+### 💾 Version Control
+
+Tambahkan mlruns ke `.gitignore` jika belum ada:
+
+```bash
+echo "mlruns/" >> .gitignore
+```
+
+---
+
 
 ## 🤖 CI/CD Pipeline — Tutorial
 
