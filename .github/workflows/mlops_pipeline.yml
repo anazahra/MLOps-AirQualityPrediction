@@ -1,4 +1,4 @@
-name: MLOps AQI Pipeline – CI/CD
+name: MLOps AQI Pipeline - CI/CD
 
 on:
   push:

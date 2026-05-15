@@ -41,10 +41,18 @@ jobs:
           pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: Setup DVC
+        uses: iterative/setup-dvc@v1
+
       - name: Pull data terbaru via DVC
         run: |
-          dvc pull --no-run-cache || echo "DVC pull skipped (lokal remote tidak tersedia di CI)"
+          dvc pull 
 
+      - name: Debug dataset
+        run: |
+          echo "=== CHECK DATA ==="
+          find data -type f
+          
       - name: Jalankan training model
         env:
           OPENWEATHER_API_KEY: ${{ secrets.OPENWEATHER_API_KEY }}
