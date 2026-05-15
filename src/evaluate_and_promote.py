@@ -13,7 +13,7 @@ from mlflow.tracking import MlflowClient
 import sys
 import os
 
-EXPERIMENT_NAME   = 'AQI_Prediction_LK06'   # Nama experiment MLflow dari LK-06
+EXPERIMENT_NAME   = 'AQI_Prediction'   # Nama experiment MLflow dari LK-06
 MODEL_NAME        = 'AQI_RandomForest'       # Nama model di registry
 THRESHOLD_ACCURACY = 0.90                    # Threshold dari LK-01
 THRESHOLD_F1       = 0.85                    # Threshold F1-macro
