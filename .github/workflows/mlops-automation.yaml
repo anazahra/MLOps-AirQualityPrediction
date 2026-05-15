@@ -43,7 +43,14 @@ jobs:
           pip install dvc
 
       - name: Pull dataset dari DVC
-        run: dvc pull
+        env:
+          DAGSHUB_USERNAME: ${{ secrets.DAGSHUB_USERNAME }}
+          DAGSHUB_TOKEN: ${{ secrets.DAGSHUB_TOKEN }}
+        run: |
+          dvc remote modify dagshub auth basic
+          dvc remote modify dagshub user $DAGSHUB_USERNAME
+          dvc remote modify dagshub password $DAGSHUB_TOKEN
+          dvc pull
 
       - name: Jalankan training model
         env:
