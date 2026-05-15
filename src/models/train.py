@@ -192,7 +192,7 @@ def main():
     results = []
 
     # ============================================
-    # RUN 1: Random Forest - Baseline
+    # RUN 1: Random Forest - Baseline  [trigger test]  
     # ============================================
     logger.info('--- Run 1: Random Forest Baseline ---')
     r = train_random_forest(X_train, y_train, X_test, y_test, le, {
