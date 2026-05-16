@@ -1,4 +1,6 @@
 [core]
-    remote = myremote
+    remote = dagshub
 ['remote "myremote"']
     url = /workspaces/dvc-storage
+['remote "dagshub"']
+    url = https://dagshub.com/anazahra/MLOps-AirQualityPrediction.dvc

@@ -176,10 +176,10 @@ def train_xgboost(X_train, y_train, X_test, y_test, le, params):
 
 
 def main():
-    logger.info('=== MULAI TRAINING LK-06 ===')
+    logger.info('=== MULAI TRAINING ===')
 
     # Set experiment name
-    mlflow.set_experiment('AQI_Prediction_LK06')
+    mlflow.set_experiment('AQI_Prediction')
 
     # Load dan siapkan data
     df = load_dataset()
@@ -192,7 +192,7 @@ def main():
     results = []
 
     # ============================================
-    # RUN 1: Random Forest - Baseline
+    # RUN 1: Random Forest - Baseline  [trigger test]  
     # ============================================
     logger.info('--- Run 1: Random Forest Baseline ---')
     r = train_random_forest(X_train, y_train, X_test, y_test, le, {
