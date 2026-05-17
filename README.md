@@ -554,163 +554,163 @@ ls -la .github/workflows/
 name: MLOps Pipeline Automation
 on:
   push:
-    branches: [ 'main' ]
-  pull_request:
-    branches: [ 'main' ]
-```
+      branches: [ 'main' ]
+        pull_request:
+            branches: [ 'main' ]
+            ```
 
-**Output:** File `.github/workflows/mlops-automation.yaml` terbuat
+            **Output:** File `.github/workflows/mlops-automation.yaml` terbuat
 
----
+            ---
 
-### 3. Job 1: Automated Testing
+            ### 3. Job 1: Automated Testing
 
-#### 3.1 Konfigurasi Job Testing
+            #### 3.1 Konfigurasi Job Testing
 
-```yaml
-jobs:
-  testing:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout kode
-        uses: actions/checkout@v4
-      - name: Setup Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
-      - name: Install dependensi
-        run: pip install -r requirements.txt
-      - name: Jalankan unit test
-        run: pytest tests/ -v
-```
+            ```yaml
+            jobs:
+              testing:
+                  runs-on: ubuntu-latest
+                      steps:
+                            - name: Checkout kode
+                                    uses: actions/checkout@v4
+                                          - name: Setup Python
+                                                  uses: actions/setup-python@v4
+                                                          with:
+                                                                    python-version: '3.10'
+                                                                          - name: Install dependensi
+                                                                                  run: pip install -r requirements.txt
+                                                                                        - name: Jalankan unit test
+                                                                                                run: pytest tests/ -v
+                                                                                                ```
 
-#### 3.2 Verifikasi Test File (lokal)
+                                                                                                #### 3.2 Verifikasi Test File (lokal)
 
-```bash
-pytest tests/ -v
-```
+                                                                                                ```bash
+                                                                                                pytest tests/ -v
+                                                                                                ```
 
-**Output:** Seluruh unit test lulus sebelum pipeline dipicu
+                                                                                                **Output:** Seluruh unit test lulus sebelum pipeline dipicu
 
----
+                                                                                                ---
 
-### 4. Job 2: Automated Training
+                                                                                                ### 4. Job 2: Automated Training
 
-#### 4.1 Konfigurasi Job Training
+                                                                                                #### 4.1 Konfigurasi Job Training
 
-```yaml
-  training:
-    runs-on: ubuntu-latest
-    needs: testing        # Hanya jalan jika testing LULUS
-    steps:
-      - name: Checkout kode
-        uses: actions/checkout@v4
-      - name: Setup Python 3.11
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
-      - name: Install dependencies
-        run: |
-          pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install dvc
-      - name: Pull dataset dari DVC
-        env:
-          DAGSHUB_USERNAME: ${{ secrets.DAGSHUB_USERNAME }}
-          DAGSHUB_TOKEN: ${{ secrets.DAGSHUB_TOKEN }}
-        run: |
-          dvc remote modify dagshub auth basic
-          dvc remote modify dagshub user $DAGSHUB_USERNAME
-          dvc remote modify dagshub password $DAGSHUB_TOKEN
-          dvc pull
-      - name: Jalankan training model
-        env:
-          OPENWEATHER_API_KEY: ${{ secrets.OPENWEATHER_API_KEY }}
-        run: python src/models/train.py
-      - name: Simpan mlruns sebagai artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: mlruns-artifact-${{ github.run_number }}
-          path: mlruns/
-          retention-days: 7
-```
+                                                                                                ```yaml
+                                                                                                  training:
+                                                                                                      runs-on: ubuntu-latest
+                                                                                                          needs: testing        # Hanya jalan jika testing LULUS
+                                                                                                              steps:
+                                                                                                                    - name: Checkout kode
+                                                                                                                            uses: actions/checkout@v4
+                                                                                                                                  - name: Setup Python 3.11
+                                                                                                                                          uses: actions/setup-python@v4
+                                                                                                                                                  with:
+                                                                                                                                                            python-version: '3.11'
+                                                                                                                                                                  - name: Install dependencies
+                                                                                                                                                                          run: |
+                                                                                                                                                                                    pip install --upgrade pip
+                                                                                                                                                                                              pip install -r requirements.txt
+                                                                                                                                                                                                        pip install dvc
+                                                                                                                                                                                                              - name: Pull dataset dari DVC
+                                                                                                                                                                                                                      env:
+                                                                                                                                                                                                                                DAGSHUB_USERNAME: ${{ secrets.DAGSHUB_USERNAME }}
+                                                                                                                                                                                                                                          DAGSHUB_TOKEN: ${{ secrets.DAGSHUB_TOKEN }}
+                                                                                                                                                                                                                                                  run: |
+                                                                                                                                                                                                                                                            dvc remote modify dagshub auth basic
+                                                                                                                                                                                                                                                                      dvc remote modify dagshub user $DAGSHUB_USERNAME
+                                                                                                                                                                                                                                                                                dvc remote modify dagshub password $DAGSHUB_TOKEN
+                                                                                                                                                                                                                                                                                          dvc pull
+                                                                                                                                                                                                                                                                                                - name: Jalankan training model
+                                                                                                                                                                                                                                                                                                        env:
+                                                                                                                                                                                                                                                                                                                  OPENWEATHER_API_KEY: ${{ secrets.OPENWEATHER_API_KEY }}
+                                                                                                                                                                                                                                                                                                                          run: python src/models/train.py
+                                                                                                                                                                                                                                                                                                                                - name: Simpan mlruns sebagai artifact
+                                                                                                                                                                                                                                                                                                                                        uses: actions/upload-artifact@v4
+                                                                                                                                                                                                                                                                                                                                                with:
+                                                                                                                                                                                                                                                                                                                                                          name: mlruns-artifact-${{ github.run_number }}
+                                                                                                                                                                                                                                                                                                                                                                    path: mlruns/
+                                                                                                                                                                                                                                                                                                                                                                              retention-days: 7
+                                                                                                                                                                                                                                                                                                                                                                              ```
 
-#### 4.2 Konfigurasi GitHub Secrets
+                                                                                                                                                                                                                                                                                                                                                                              #### 4.2 Konfigurasi GitHub Secrets
 
-Tambahkan di `Settings → Secrets and variables → Actions`:
+                                                                                                                                                                                                                                                                                                                                                                              Tambahkan di `Settings → Secrets and variables → Actions`:
 
-| Secret | Keterangan |
-|--------|------------|
-| `DAGSHUB_USERNAME` | Username DagsHub untuk DVC pull |
-| `DAGSHUB_TOKEN` | Token autentikasi DagsHub |
-| `OPENWEATHER_API_KEY` | API key OpenWeatherMap |
+                                                                                                                                                                                                                                                                                                                                                                              | Secret | Keterangan |
+                                                                                                                                                                                                                                                                                                                                                                              |--------|------------|
+                                                                                                                                                                                                                                                                                                                                                                              | `DAGSHUB_USERNAME` | Username DagsHub untuk DVC pull |
+                                                                                                                                                                                                                                                                                                                                                                              | `DAGSHUB_TOKEN` | Token autentikasi DagsHub |
+                                                                                                                                                                                                                                                                                                                                                                              | `OPENWEATHER_API_KEY` | API key OpenWeatherMap |
 
----
+                                                                                                                                                                                                                                                                                                                                                                              ---
 
-### 5. Job 3: Model Evaluation & Auto-Registry
+                                                                                                                                                                                                                                                                                                                                                                              ### 5. Job 3: Model Evaluation & Auto-Registry
 
-#### 5.1 Membuat Skrip Evaluasi dan Promosi
+                                                                                                                                                                                                                                                                                                                                                                              #### 5.1 Membuat Skrip Evaluasi dan Promosi
 
-Buat file `src/evaluate_and_promote.py`
-
-
----
-
-### 6. Simulasi Trigger & Push
-
-#### 6.1 Push Pertama (Deploy Workflow)
-
-```bash
-git add .github/workflows/mlops-automation.yaml
-git add src/evaluate_and_promote.py
-git add src/__init__.py
-git add tests/test_pipeline.py
-git commit -m "feat: add mlops automation pipeline with testing, training, registry"
-git push origin feat/mlops-automation
-```
-
-#### 6.2 Trigger Test (Simulasi Perubahan Kode)
-
-```bash
-sed -i 's/# RUN 1: Random Forest - Baseline/# RUN 1: Random Forest - Baseline  [trigger test]/' src/models/train.py
-grep "trigger test" src/models/train.py
-git add src/models/train.py
-git commit -m "chore: minor update to trigger automated pipeline (LK-08 simulation)"
-git push origin feat/mlops-automation
-```
+                                                                                                                                                                                                                                                                                                                                                                              Buat file `src/evaluate_and_promote.py`
 
 
-### Alur Pipeline Lengkap
+                                                                                                                                                                                                                                                                                                                                                                              ---
 
-```
-Push / PR ke main
-      │
-      ▼
-┌─────────────────────────┐
-│  JOB 1: testing         │  ← pytest tests/ -v
-│  (selalu berjalan)      │
-└──────────┬──────────────┘
-           │ (jika PASS)
-           ▼
-┌─────────────────────────┐
-│  JOB 2: training        │  ← python src/models/train.py
-│  needs: testing         │    + dvc pull dataset
-└──────────┬──────────────┘
-           │ (jika SELESAI)
-           ▼
-┌─────────────────────────┐
-│  JOB 3: registry        │  ← python src/evaluate_and_promote.py
-│  needs: training        │    → promosi ke MLflow Staging
-└─────────────────────────┘
-```
+                                                                                                                                                                                                                                                                                                                                                                              ### 6. Simulasi Trigger & Push
 
-### Trigger yang Aktif
+                                                                                                                                                                                                                                                                                                                                                                              #### 6.1 Push Pertama (Deploy Workflow)
 
-| Trigger | Kapan Berjalan |
-|---------|----------------|
-| `push` ke `main` / `feat/**` | Setiap kali ada commit baru |
-| `pull_request` ke `main` | Saat PR dibuka atau diperbarui |
+                                                                                                                                                                                                                                                                                                                                                                              ```bash
+                                                                                                                                                                                                                                                                                                                                                                              git add .github/workflows/mlops-automation.yaml
+                                                                                                                                                                                                                                                                                                                                                                              git add src/evaluate_and_promote.py
+                                                                                                                                                                                                                                                                                                                                                                              git add src/__init__.py
+                                                                                                                                                                                                                                                                                                                                                                              git add tests/test_pipeline.py
+                                                                                                                                                                                                                                                                                                                                                                              git commit -m "feat: add mlops automation pipeline with testing, training, registry"
+                                                                                                                                                                                                                                                                                                                                                                              git push origin feat/mlops-automation
+                                                                                                                                                                                                                                                                                                                                                                              ```
 
+                                                                                                                                                                                                                                                                                                                                                                              #### 6.2 Trigger Test (Simulasi Perubahan Kode)
+
+                                                                                                                                                                                                                                                                                                                                                                              ```bash
+                                                                                                                                                                                                                                                                                                                                                                              sed -i 's/# RUN 1: Random Forest - Baseline/# RUN 1: Random Forest - Baseline  [trigger test]/' src/models/train.py
+                                                                                                                                                                                                                                                                                                                                                                              grep "trigger test" src/models/train.py
+                                                                                                                                                                                                                                                                                                                                                                              git add src/models/train.py
+                                                                                                                                                                                                                                                                                                                                                                              git commit -m "chore: minor update to trigger automated pipeline (LK-08 simulation)"
+                                                                                                                                                                                                                                                                                                                                                                              git push origin feat/mlops-automation
+                                                                                                                                                                                                                                                                                                                                                                              ```
+
+
+                                                                                                                                                                                                                                                                                                                                                                              ### Alur Pipeline Lengkap
+
+                                                                                                                                                                                                                                                                                                                                                                              ```
+                                                                                                                                                                                                                                                                                                                                                                              Push / PR ke main
+                                                                                                                                                                                                                                                                                                                                                                                    │
+                                                                                                                                                                                                                                                                                                                                                                                          ▼
+                                                                                                                                                                                                                                                                                                                                                                                          ┌─────────────────────────┐
+                                                                                                                                                                                                                                                                                                                                                                                          │  JOB 1: testing         │  ← pytest tests/ -v
+                                                                                                                                                                                                                                                                                                                                                                                          │  (selalu berjalan)      │
+                                                                                                                                                                                                                                                                                                                                                                                          └──────────┬──────────────┘
+                                                                                                                                                                                                                                                                                                                                                                                                     │ (jika PASS)
+                                                                                                                                                                                                                                                                                                                                                                                                                ▼
+                                                                                                                                                                                                                                                                                                                                                                                                                ┌─────────────────────────┐
+                                                                                                                                                                                                                                                                                                                                                                                                                │  JOB 2: training        │  ← python src/models/train.py
+                                                                                                                                                                                                                                                                                                                                                                                                                │  needs: testing         │    + dvc pull dataset
+                                                                                                                                                                                                                                                                                                                                                                                                                └──────────┬──────────────┘
+                                                                                                                                                                                                                                                                                                                                                                                                                           │ (jika SELESAI)
+                                                                                                                                                                                                                                                                                                                                                                                                                                      ▼
+                                                                                                                                                                                                                                                                                                                                                                                                                                      ┌─────────────────────────┐
+                                                                                                                                                                                                                                                                                                                                                                                                                                      │  JOB 3: registry        │  ← python src/evaluate_and_promote.py
+                                                                                                                                                                                                                                                                                                                                                                                                                                      │  needs: training        │    → promosi ke MLflow Staging
+                                                                                                                                                                                                                                                                                                                                                                                                                                      └─────────────────────────┘
+                                                                                                                                                                                                                                                                                                                                                                                                                                      ```
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                      ### Trigger yang Aktif
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                      | Trigger | Kapan Berjalan |
+                                                                                                                                                                                                                                                                                                                                                                                                                                      |---------|----------------|
+                                                                                                                                                                                                                                                                                                                                                                                                                                      | `push` ke `main` / `feat/**` | Setiap kali ada commit baru |
+                                                                                                                                                                                                                                                                                                                                                                                                                                      | `pull_request` ke `main` | Saat PR dibuka atau diperbarui |
+                                                                                                                                                                                                                                                                                                                                                                                                                                      
 
 ## 🤖 CI/CD Pipeline — Tutorial
 
