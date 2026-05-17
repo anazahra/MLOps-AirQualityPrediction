@@ -1,0 +1,59 @@
+services:
+  # Layanan 1: MLflow Tracking Server 
+  mlflow-server:
+    image: python:3.11-slim
+    container_name: mlflow-server
+    working_dir: /mlflow
+    volumes:
+      - mlflow-artifacts:/mlflow/mlruns
+      - mlflow-db:/mlflow/db
+      - ./data:/app/data      # ini di api-service, bukan mlflow-server
+    ports:
+      - '5000:5000'
+    command:
+      - bash
+      - -c
+      - |
+        pip install mlflow --quiet &&
+        mlflow server \
+          --backend-store-uri sqlite:///db/mlflow.db \
+          --default-artifact-root /mlflow/mlruns \
+          --host 0.0.0.0 \
+          --port 5000 \
+          --allowed-hosts '*'
+    networks:
+      - ml-network
+    
+  # Layanan 2: API Inferensi 
+  api-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: api-service
+    ports:
+      - '8000:8000'
+    environment:
+      - MLFLOW_TRACKING_URI=http://mlflow-server:5000
+      - OPENWEATHER_API_KEY=${OPENWEATHER_API_KEY}
+    volumes:
+      - ./data:/app/data
+      - ./models:/app/models
+      - ./src:/app/src
+    depends_on:
+      - mlflow-server
+    networks:
+      - ml-network
+    restart: on-failure
+
+# networks 
+networks:
+  ml-network:
+    driver: bridge
+    name: ml-network
+
+# volumes
+volumes:
+  mlflow-artifacts:
+    driver: local
+  mlflow-db:
+    driver: local
