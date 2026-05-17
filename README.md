@@ -711,6 +711,58 @@ Push / PR ke main
 | `push` ke `main` / `feat/**` | Setiap kali ada commit baru |
 | `pull_request` ke `main` | Saat PR dibuka atau diperbarui |
 
+---
+
+
+## 🐳 Orkestrasi Layanan ML — LK-09
+
+### Arsitektur Sistem
+```
+┌─────────────────────────────────────────────────────┐
+│              Docker Compose — ml-network            │
+│                                                     │
+│  ┌─────────────────┐    ┌──────────────────────┐   │
+│  │  api-service    │───▶│   mlflow-server      │   │
+│  │  (port 8000)    │    │   (port 5000)        │   │
+│  └─────────────────┘    └──────────┬───────────┘   │
+│                                    │                │
+│                         ┌──────────▼───────────┐   │
+│                         │  Volume: mlflow-data  │   │
+│                         └──────────────────────┘   │
+└─────────────────────────────────────────────────────┘
+```
+
+### Prasyarat
+- Docker & Docker Compose terinstall
+- File `.env` berisi `OPENWEATHER_API_KEY`
+
+### Cara Menjalankan Seluruh Sistem
+```bash
+# 1. Clone repositori
+git clone https://github.com/anazahra/MLOps-AirQualityPrediction.git
+cd MLOps-AirQualityPrediction
+
+# 2. Buat file .env
+cp .env.example .env
+# Edit .env dan isi OPENWEATHER_API_KEY dengan API key asli
+
+# 3. Jalankan seluruh sistem dengan SATU perintah
+docker compose up -d
+
+# 4. Cek status
+docker compose ps
+
+# 5. Akses layanan
+# MLflow UI     : http://localhost:5000
+# API Inferensi : http://localhost:8000
+```
+
+### Menghentikan Sistem
+```bash
+docker compose down           # Hentikan (data tetap tersimpan)
+docker compose down -v        # Hentikan + hapus semua volume
+```
+
 
 ## 🤖 CI/CD Pipeline — Tutorial
 

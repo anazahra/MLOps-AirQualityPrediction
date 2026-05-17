@@ -16,8 +16,4 @@ COPY . .
 EXPOSE 8000
 
 # Jalankan FastAPI dengan uvicorn
-CMD ["python", "-c", "
-import mlflow, os;
-mlflow.set_tracking_uri(os.getenv('MLFLOW_TRACKING_URI', 'http://localhost:5000'));
-print('API service ready. MLFLOW_TRACKING_URI:', os.getenv('MLFLOW_TRACKING_URI'));
-import time; time.sleep(3600)"]
+CMD ["uvicorn", "src.api:app", "--host", "0.0.0.0", "--port", "8000"]
