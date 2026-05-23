@@ -1,5 +1,6 @@
+version: '3.8'
+
 services:
-  # Layanan 1: MLflow Tracking Server 
   mlflow-server:
     image: python:3.11-slim
     container_name: mlflow-server
@@ -7,7 +8,6 @@ services:
     volumes:
       - mlflow-artifacts:/mlflow/mlruns
       - mlflow-db:/mlflow/db
-      - ./data:/app/data      # ini di api-service, bukan mlflow-server
     ports:
       - '5000:5000'
     command:
@@ -23,8 +23,7 @@ services:
           --allowed-hosts '*'
     networks:
       - ml-network
-    
-  # Layanan 2: API Inferensi 
+
   api-service:
     build:
       context: .
@@ -45,13 +44,19 @@ services:
       - ml-network
     restart: on-failure
 
-# networks 
+  aqi-model-server:
+    image: aqi-model-server:latest
+    ports:
+      - '1234-1236:8080'
+    networks:
+      - ml-network
+    restart: on-failure
+
 networks:
   ml-network:
     driver: bridge
     name: ml-network
 
-# volumes
 volumes:
   mlflow-artifacts:
     driver: local

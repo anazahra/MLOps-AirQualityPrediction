@@ -1,0 +1,15 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+RUN pip install mlflow scikit-learn --no-cache-dir
+
+COPY mlruns/ /app/mlruns/
+
+ENV MLFLOW_TRACKING_URI=file:///app/mlruns
+
+EXPOSE 8080
+
+CMD ["mlflow", "models", "serve", \
+     "--model-uri", "models:/AQI_RandomForest/Production", \
+     "--port", "8080", "--host", "0.0.0.0", "--no-conda"]
