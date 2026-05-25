@@ -5,8 +5,9 @@ WORKDIR /app
 RUN pip install mlflow scikit-learn --no-cache-dir
 
 COPY mlruns/ /app/mlruns/
+COPY mlflow_local.db /app/mlflow_local.db
 
-ENV MLFLOW_TRACKING_URI=file:///app/mlruns
+ENV MLFLOW_TRACKING_URI=sqlite:////app/mlflow_local.db
 
 EXPOSE 8080
 
