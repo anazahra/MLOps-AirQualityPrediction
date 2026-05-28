@@ -1,98 +1,64 @@
 version: '3.8'
 
 services:
-  # Service 1: MLflow Tracking Server
   mlflow-server:
     image: python:3.11-slim
     container_name: mlflow-server
     working_dir: /mlflow
-
     volumes:
       - mlflow-artifacts:/mlflow/mlruns
       - mlflow-db:/mlflow/db
-      - ./mlruns:/mlflow/local-mlruns:ro
-
     ports:
       - '5000:5000'
-
-    command: >
-      bash -c "pip install mlflow --quiet &&
-      mlflow server
-      --backend-store-uri sqlite:///db/mlflow.db
-      --default-artifact-root /mlflow/mlruns
-      --host 0.0.0.0
-      --port 5000
-      --allowed-hosts '*'"
-    
+    command:
+      - bash
+      - -c
+      - |
+        pip install mlflow --quiet &&
+        mlflow server \
+          --backend-store-uri sqlite:///db/mlflow.db \
+          --default-artifact-root /mlflow/mlruns \
+          --host 0.0.0.0 \
+          --port 5000 \
+          --allowed-hosts '*'
     networks:
       - ml-network
 
-    healthcheck:
-      test: ['CMD', 'curl', '-f', 'http://localhost:5000/health']
-      interval: 30s
-      timeout: 15s
-      retries: 5
-      start_period: 90s
-
-  # Service 2: API Inferensi
   api-service:
     build:
       context: .
       dockerfile: Dockerfile
-
     container_name: api-service
-
     ports:
       - '8000:8000'
-
     environment:
       - MLFLOW_TRACKING_URI=http://mlflow-server:5000
       - OPENWEATHER_API_KEY=${OPENWEATHER_API_KEY}
-
     volumes:
       - ./data:/app/data
       - ./models:/app/models
       - ./src:/app/src
-
     depends_on:
-      mlflow-server:
-        condition: service_healthy
-
+      - mlflow-server
     networks:
       - ml-network
-
     restart: on-failure
 
-  # Service 3: Model Server
   aqi-model-server:
-    build:
-      context: .
-      dockerfile: Dockerfile.model-server
-
-    container_name: aqi-model-server
-
+    image: aqi-model-server:latest
     ports:
-      - '1234:8080'
-
-    depends_on:
-      mlflow-server:
-        condition: service_healthy
-
+      - '1234-1236:8080'
     networks:
       - ml-network
-
     restart: on-failure
 
-# Networks
 networks:
   ml-network:
     driver: bridge
     name: ml-network
 
-# Volumes
 volumes:
   mlflow-artifacts:
     driver: local
-
   mlflow-db:
     driver: local

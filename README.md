@@ -763,6 +763,76 @@ docker compose down           # Hentikan (data tetap tersimpan)
 docker compose down -v        # Hentikan + hapus semua volume
 ```
 
+## 🚀 Model Serving dan Scaling — LK-10
+ 
+### Arsitektur Sistem Lengkap
+```
+┌─────────────────────────────────────────────────────────────┐
+│              Docker Compose — ml-network                    │
+│                                                             │
+│  ┌─────────────┐    ┌───────────────────────────────────┐   │
+│  │ api-service │    │        aqi-model-server           │   │
+│  │  (port 8000)│    │  Replika 1 (port 1234) ──────┐    │   │
+│  └──────┬──────┘    │  Replika 2 (port 1235) ──┐   │    │   │
+│         │           │  Replika 3 (port 1236) ─┐│   │    │   │
+│         │           └─────────────────────────┼┘   │    │   │
+│         └──────────────────────┐              │    │    │   │
+│                    ┌───────────▼──────────┐   │    │    │   │
+│                    │   mlflow-server      │◄──┘────┘────┘   │   
+│                    │   (port 5000)        │                 │
+│                    └──────────────────────┘                 │
+└─────────────────────────────────────────────────────────────┘
+```
+ 
+### Cara Menjalankan Seluruh Sistem
+```bash
+# 1. Build image model terlebih dahulu (sekali saja)
+export RUN_ID=<run_id_production_kamu>
+mlflow models build-docker --model-uri runs:/$RUN_ID/model --name aqi-model-server
+ 
+# 2. Jalankan semua service dengan 3 replika
+docker compose up -d --scale aqi-model-server=3
+ 
+# 3. Verifikasi
+docker compose ps
+```
+ 
+### Cara Mengakses Endpoint API Prediksi
+```bash
+# Model API (pilih salah satu replika)
+# Replika 1:
+curl -X POST http://localhost:1234/invocations \
+     -H 'Content-Type: application/json' \
+     -d '{"dataframe_split": {"columns": ["pm2_5",...], "data": [[12.5,...]]}}'
+ 
+# Replika 2:
+curl -X POST http://localhost:1235/invocations ...
+ 
+# Replika 3:
+curl -X POST http://localhost:1236/invocations ...
+```
+ 
+### Cara Menambah Replika Secara Dinamis
+```bash
+# Scale up ke 5 replika (misalnya saat beban tinggi)
+docker compose up -d --scale aqi-model-server=5
+ 
+# Scale down ke 2 replika (saat beban rendah)
+docker compose up -d --scale aqi-model-server=2
+ 
+# Cek jumlah replika yang sedang berjalan
+docker compose ps | grep aqi-model-server
+```
+ 
+### Services yang Tersedia
+| Service | Port | Deskripsi |
+|---------|------|-----------|
+| MLflow UI | http://localhost:5000 | Dashboard eksperimen |
+| API Service | http://localhost:8000 | FastAPI inferensi |
+| Model Server (Replika 1) | http://localhost:1234/invocations | REST API prediksi |
+| Model Server (Replika 2) | http://localhost:1235/invocations | REST API prediksi |
+| Model Server (Replika 3) | http://localhost:1236/invocations | REST API prediksi |
+
 
 ## 🤖 CI/CD Pipeline — Tutorial
 
