@@ -1,29 +1,34 @@
 version: '3.8'
 
 services:
+
+  # Service 1: MLflow Tracking Server
   mlflow-server:
-    image: python:3.11-slim
+    image: ghcr.io/mlflow/mlflow:v2.12.1
     container_name: mlflow-server
     working_dir: /mlflow
     volumes:
       - mlflow-artifacts:/mlflow/mlruns
       - mlflow-db:/mlflow/db
+      - ./mlruns:/mlflow/local-mlruns:ro
     ports:
       - '5000:5000'
-    command:
-      - bash
-      - -c
-      - |
-        pip install mlflow --quiet &&
-        mlflow server \
-          --backend-store-uri sqlite:///db/mlflow.db \
-          --default-artifact-root /mlflow/mlruns \
-          --host 0.0.0.0 \
-          --port 5000 \
-          --allowed-hosts '*'
+    command: >-
+      mlflow server
+      --backend-store-uri sqlite:///db/mlflow.db
+      --default-artifact-root /mlflow/mlruns
+      --host 0.0.0.0
+      --port 5000
     networks:
       - ml-network
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:5000/api/2.0/mlflow/experiments/list']
+      interval: 30s
+      timeout: 15s
+      retries: 5
+      start_period: 60s
 
+  # Service 2: API Inferensi (dengan /metrics untuk Prometheus)
   api-service:
     build:
       context: .
@@ -38,12 +43,14 @@ services:
       - ./data:/app/data
       - ./models:/app/models
       - ./src:/app/src
+      - mlflow-artifacts:/mlflow/mlruns
     depends_on:
       - mlflow-server
     networks:
       - ml-network
     restart: on-failure
 
+  # Service 3: Model Server (3 replika)
   aqi-model-server:
     image: aqi-model-server:latest
     ports:
@@ -52,13 +59,63 @@ services:
       - ml-network
     restart: on-failure
 
+  # Service 4: Prometheus 
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - '9090:9090'
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    networks:
+      - ml-network
+    restart: unless-stopped
+    depends_on:
+      - api-service
+
+  # Service 5: Grafana
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - '8080:3000'
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin123
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_SERVER_ROOT_URL=https://silver-palm-tree-5ggg5gwpjpjvf4xq9-3000.app.github.dev
+      - GF_SERVER_SERVE_FROM_SUB_PATH=false
+      - GF_SECURITY_ALLOW_EMBEDDING=true
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+    volumes:
+      - grafana-data:/var/lib/grafana
+    networks:
+      - ml-network
+    restart: unless-stopped
+    depends_on:
+      - prometheus
+
+# Networks 
 networks:
   ml-network:
     driver: bridge
     name: ml-network
 
+# Volumes 
 volumes:
   mlflow-artifacts:
     driver: local
   mlflow-db:
     driver: local
+  prometheus-data:
+    driver: local
+  grafana-data:
+    driver: local
+
