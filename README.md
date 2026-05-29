@@ -834,6 +834,35 @@ docker compose ps | grep aqi-model-server
 | Model Server (Replika 3) | http://localhost:1236/invocations | REST API prediksi |
 
 
+## 💻 Observability & Dashboard (LK-11)
+
+### Arsitektur Monitoring Lengkap
+```
++--------------------------------------------------+
+|            Docker Compose — ml-network           |
+|                                                  |
+|  [api-service:8000] ----> [prometheus:9090]      |
+|       |  /metrics                 |              |
+|  [aqi-model-server x3]            v              |
+|   port 1234/1235/1236     [grafana:8080]         |
+|                                                  |
+|  [mlflow-server:5000]                            |
++--------------------------------------------------+
+```
+
+### Cara Menjalankan Sistem Monitoring
+```bash
+# Build dan jalankan dengan 3 replika
+docker compose build api-service
+docker compose up -d --scale aqi-model-server=3
+
+# Akses layanan
+# Grafana Dashboard : http://localhost:8080 (admin/admin123)
+# Prometheus UI     : http://localhost:9090
+# API Metrics       : http://localhost:8000/metrics
+```
+
+
 ## 🤖 CI/CD Pipeline — Tutorial
 
 Pipeline berjalan otomatis via GitHub Actions setiap kali ada push ke `main`
