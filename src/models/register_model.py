@@ -1,5 +1,5 @@
 """
-LK-07: Model Registry dan Versioning
+Model Registry dan Versioning
 =====================================
 Mendaftarkan model terbaik LK-06 ke MLflow Model Registry,
 membuat versi kedua, dan melakukan transisi stage.

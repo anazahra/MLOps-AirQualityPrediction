@@ -1,5 +1,5 @@
 """
-LK-08: Evaluasi Otomatis dan Promosi Model ke MLflow Registry
+Evaluasi Otomatis dan Promosi Model ke MLflow Registry
 
 Skrip ini:
 1. Mengambil hasil run training terbaru dari MLflow
