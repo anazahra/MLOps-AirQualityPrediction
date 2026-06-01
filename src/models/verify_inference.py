@@ -1,4 +1,4 @@
-"""LK-07: Verifikasi Inferensi Model Production"""
+"""Verifikasi Inferensi Model Production"""
 import mlflow.pyfunc, pandas as pd, numpy as np, logging
 
 logging.basicConfig(level=logging.INFO,
