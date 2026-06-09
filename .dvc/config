@@ -4,3 +4,5 @@
     url = /workspaces/dvc-storage
 ['remote "dagshub"']
     url = https://dagshub.com/anazahra/MLOps-AirQualityPrediction.dvc
+    user = anazahra
+    password = e8457572437082f85fc33d2193513d97fb92e894
