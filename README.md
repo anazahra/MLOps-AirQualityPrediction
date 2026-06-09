@@ -928,5 +928,81 @@ pytest tests/ -v
 - **Actions (CI/CD):** https://github.com/anazahra/MLOps-AirQualityPrediction/actions
 - **Video Referensi Tutorial:** https://www.youtube.com/watch?v=ciqWMIf7Pz0
 
+
+## 🔍 Clustering & Aturan Baru (Revisi)
+
+### 📌 Latar Belakang
+Revisi ini menjawab pertanyaan mendasar: **apa nilai tambah ML jika sudah ada aturan klasifikasi BMKG?**
+Dengan menambahkan analisis clustering, sistem dapat menemukan pola alami dalam data
+dan membandingkannya dengan aturan statis BMKG
+
+### Alur Analisis
+```
+Data AQI (600 records)
+        │
+        ▼
+┌─────────────────────┐
+│  K-Means Clustering │  ← fitur: aqi, pm2_5, pm10, no2, o3, co, so2, nh3
+│  k=4 (Elbow Method) │
+└──────────┬──────────┘
+           │
+           ▼
+┌─────────────────────┐
+│  Analisis Cluster   │  ← profil tiap cluster (mean, std per fitur)
+│  + Aturan Baru      │  ← threshold berbasis data, bukan BMKG
+└──────────┬──────────┘
+           │
+           ▼
+┌─────────────────────┐
+│  Perbandingan       │  ← label BMKG vs label aturan baru (crosstab)
+└──────────┬──────────┘
+           │
+           ▼
+┌─────────────────────┐     ┌─────────────────────┐
+│  RF + Label Baru    │     │  RF + Label BMKG    │
+│  (clustering)       │ vs  │  (aturan statis)    │
+└─────────────────────┘     └─────────────────────┘
+           │
+           ▼
+    Testing & Evaluasi
+```
+
+### Cara Menjalankan
+```bash
+# Pastikan di branch feat/clustering atau main (setelah merge)
+python src/clustering/cluster_analysis.py
+```
+
+### Output yang Dihasilkan
+| File/Artifact          | Lokasi          | Deskripsi                                        |
+|------------------------|-----------------|--------------------------------------------------|
+| clustering_results.csv | data/processed/ | Dataset dengan kolom cluster_id dan new_category |
+| RF_NewRules_Label      | MLflow          | Model RF dilatih dengan label aturan baru        |
+| RF_BMKG_Label          | MLflow          | Model RF dilatih dengan label BMKG (pembanding)  |
+
+### Melihat Hasil di MLflow
+```bash
+mlflow ui --host 0.0.0.0 --port 5000
+# Buka experiment: AQI_Clustering_NewRules
+# Bandingkan run: RF_NewRules_Label vs RF_BMKG_Label
+```
+
+### Struktur Tambahan
+```
+src/
+└── clustering/
+    ├── __init__.py
+    └── cluster_analysis.py   ← elbow method, k-means, aturan baru, training, testing
+data/processed/
+└── clustering_results.csv    ← hasil clustering (cluster_id + new_category)
+```
+
+### Kesimpulan
+Clustering membuktikan bahwa data kualitas udara 10 kota Indonesia
+memiliki pola alami yang tidak selalu identik dengan threshold statis BMKG.
+Model ML yang dilatih dengan label berbasis data (clustering) menghasilkan
+klasifikasi yang lebih merepresentasikan kondisi riil dibanding aturan statis
+
+
 ## 👤 Kontributor
 **Ana Zahratul Firdausi** - 235150201111049 
