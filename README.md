@@ -862,6 +862,41 @@ docker compose up -d --scale aqi-model-server=3
 # API Metrics       : http://localhost:8000/metrics
 ```
 
+## 🔄 Continuous Training (CT) (LK-12)
+
+### Skenario Trigger
+| Skenario | Kondisi | Threshold |
+|----------|---------|-----------|
+| A — Performance | Accuracy atau F1 turun | Accuracy < 0.90, F1 < 0.85 |
+| B — Data Drift | KS-test p-value signifikan | p-value < 0.05 |
+| C — Schedule | Jadwal rutin | Setiap Minggu 08.00 WIB |
+
+### Menjalankan CT Secara Manual
+```bash
+# Simulasi data drift
+python src/ct/simulate_drift.py
+
+# Cek apakah retraining diperlukan
+python src/ct/ct_trigger.py
+
+# Jalankan retraining + promosi
+python src/ct/retrain_and_promote.py
+```
+
+### Trigger via GitHub Actions
+Buka tab Actions -> Continuous Training Pipeline -> Run workflow
+
+### Struktur File CT
+```
+src/ct/
+├── __init__.py
+├── drift_detector.py       ← KS-test deteksi data drift
+├── ct_trigger.py           ← evaluasi semua skenario trigger
+├── retrain_and_promote.py  ← retraining + evaluasi komparatif + promosi
+└── simulate_drift.py       ← simulasi shifted data untuk pengujian
+.github/workflows/
+└── ct-pipeline.yml         ← workflow CT otomatis
+```
 
 ## 🤖 CI/CD Pipeline — Tutorial
 
