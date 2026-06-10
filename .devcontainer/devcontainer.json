@@ -22,7 +22,8 @@
         "redhat.vscode-yaml"
       ],
       "settings": {
-        "python.defaultInterpreterPath": "/usr/local/bin/python",
+        "python.defaultInterpreterPath": "/usr/local/python/current/bin/python",  // ubah ini
+        "pylint.path": ["/usr/local/python/current/bin/pylint"],  // tambah ini
         "editor.formatOnSave": true,
         "editor.defaultFormatter": "ms-python.black-formatter"
       }
