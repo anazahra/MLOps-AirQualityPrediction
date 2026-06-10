@@ -58,13 +58,15 @@ def verify():
     
     df = generate_unseen_data(n=300)
     X = df.drop(columns=['aqi_category'])
-    X = X[model.feature_names_in_]  # reorder otomatis sesuai model
-    
+    X = X[model.feature_names_in_]
     y_true = df['aqi_category'].astype(str)
+    
+    # Model menyimpan LabelEncoder — fit ulang dengan kelas yang sama
+    le = LabelEncoder()
+    le.classes_ = np.array(['Baru_Baik', 'Baru_Berbahaya', 'Baru_Sedang', 'Baru_TidakSehat'])
+    
     y_pred_encoded = model.predict(X)
-
-    model_classes = model.classes_  # tetap seperti punyamu
-    y_pred = [str(model_classes[i]) for i in y_pred_encoded]
+    y_pred = le.inverse_transform(y_pred_encoded)  # decode angka -> nama kelas
 
     acc = accuracy_score(y_true, y_pred)
     f1  = f1_score(y_true, y_pred, average='macro', zero_division=0)
